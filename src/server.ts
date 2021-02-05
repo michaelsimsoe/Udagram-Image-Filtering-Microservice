@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import { filterImageFromURL, deleteLocalFiles } from './util/util';
+const url = require('url');
 
 (async () => {
   // Init the Express application
@@ -34,6 +35,30 @@ import { filterImageFromURL, deleteLocalFiles } from './util/util';
 
     if (!imageUrl) {
       return res.status(400).send('Please provide an url for the image');
+    }
+
+    try {
+      const checkedUrl = new URL(imageUrl);
+      if (!['http:', 'https:', 'ftp:', 'ipfs:'].includes(checkedUrl.protocol)) {
+        throw Error(`${checkedUrl}`);
+      }
+
+      if (
+        !['jpg', 'jpeg', 'png', 'bmp', 'tiff', 'gif'].includes(
+          checkedUrl.pathname.split('.')[1]
+        )
+      ) {
+        return res.status(400).send(`Please provide an image`);
+      }
+    } catch (error) {
+      console.log(
+        `${Date().toString()}: ${
+          error.input || error.message
+        } is not a valid url`
+      );
+      return res
+        .status(400)
+        .send(`${error.input || error.message} is not a valid url`);
     }
 
     try {
