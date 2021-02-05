@@ -30,16 +30,25 @@ import { filterImageFromURL, deleteLocalFiles } from './util/util';
 
   app.get('/filteredimage', async (req, res) => {
     const imageUrl = req.query.image_url;
-    let imageFile;
+    let imageFilePath: string;
 
     if (!imageUrl) {
       return res.status(400).send('Please provide an url for the image');
     }
 
     try {
-      imageFile = await filterImageFromURL(imageUrl);
+      imageFilePath = await filterImageFromURL(imageUrl);
+      res.sendFile(imageFilePath, {}, (error: Error) => {
+        deleteLocalFiles([imageFilePath]);
+        if (error) {
+          return res.sendStatus(500);
+        }
+        console.log(
+          `${Date().toString()}: sent filtered image of resource: ${imageUrl}`
+        );
+      });
     } catch (error) {
-      return res.status(500).send('Unable to filter the provided image');
+      res.sendStatus(500);
     }
   });
   //! END @TODO1
